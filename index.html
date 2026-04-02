@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>E! BA — EBA November Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --ink:#0e313e; --ink2:#2C5364; --amber:#F1A01B; --teal:#0F6A8C;
+  --green:#008148; --red:#C0392B; --orange:#D4820A;
+  --bg:#F2F5F7; --card:#fff; --border:#DDE3EB;
+  --font:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px}
+
+/* ── HEADER ── */
+.hdr{background:var(--ink);border-bottom:3px solid var(--amber)}
+.hdr-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.ebadge{background:var(--amber);color:var(--ink);font-weight:800;font-size:11px;padding:3px 8px;border-radius:3px;letter-spacing:.05em}
+.hdr-title{font-size:18px;font-weight:700;color:#fff;line-height:1.1}
+.hdr-sub{font-size:11px;color:#7A9BAD;margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.live{display:flex;gap:5px;align-items:center;padding:4px 10px;background:rgba(0,129,72,.15);border:1px solid #008148;border-radius:20px}
+.ldot{width:5px;height:5px;border-radius:50%;background:#4F9262;animation:blink 1.4s ease infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.ltxt{font-size:10px;color:#4F9262;font-weight:700}
+.badge{font-size:11px;color:#7A9BAD;background:rgba(255,255,255,.08);padding:3px 10px;border-radius:12px}
+
+/* ── KPI STRIP ── */
+.kpi-strip{background:var(--ink2);border-bottom:1px solid rgba(255,255,255,.08)}
+.kpi-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+.kpi-cell{padding:14px 20px;border-right:1px solid rgba(255,255,255,.1)}
+.kpi-cell:last-child{border-right:none}
+.kl{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#7A9BAD;margin-bottom:6px;font-weight:700;display:block}
+.kv{font-size:28px;font-weight:700;display:block;line-height:1;letter-spacing:-1px}
+.ks{font-size:10px;color:#7A9BAD;display:block;margin-top:3px}
+
+/* ── FILTER BAR ── */
+.fbar{background:#fff;border-bottom:1px solid var(--border);padding:8px 24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.fl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;font-weight:700;display:block;margin-bottom:3px}
+select{background:#F7F9FB;color:var(--ink);border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:500}
+.rbtn{padding:5px 13px;border-radius:6px;border:1.5px solid var(--border);background:#F7F9FB;color:#666;font-size:11px;cursor:pointer;font-weight:600}
+.fnote{font-size:10px;color:#aaa;margin-left:auto}
+
+/* ── TABS ── */
+.tabs{background:#fff;border-bottom:2px solid var(--border);padding:0 24px;display:flex;overflow-x:auto}
+.tb{padding:10px 15px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;color:#888;margin-bottom:-2px;transition:all .15s}
+.tb.on{border-bottom-color:var(--teal);color:var(--teal)}
+.tb:hover:not(.on){color:var(--ink)}
+
+/* ── BODY ── */
+.body{max-width:1180px;margin:0 auto;padding:20px 24px}
+.pane{display:none;flex-direction:column;gap:14px}
+.pane.on{display:flex}
+
+/* ── SECTION LABEL ── */
+.sdiv{display:flex;align-items:center;gap:10px;margin:2px 0 4px}
+.sdiv::before,.sdiv::after{content:'';flex:1;height:1px;background:var(--border)}
+.slbl{font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.1em;padding:3px 12px;background:#EBF5FF;border:1.5px solid var(--teal);border-radius:20px;white-space:nowrap}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(14,49,62,.05)}
+.ct{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#888;display:block;margin-bottom:12px;font-weight:700}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ga{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+
+/* ── STAT CARDS ── */
+.sc{background:#fff;border:1px solid var(--border);border-top:3px solid;border-radius:10px;padding:14px;box-shadow:0 1px 3px rgba(14,49,62,.04)}
+.sl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:5px;font-weight:700;display:block}
+.sv{font-size:22px;font-weight:800;display:block}
+.ss{font-size:10px;color:#aaa;display:block;margin-top:3px}
+
+/* ── NPS GAUGE CARD ── */
+.nps-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(14,49,62,.05)}
+.nps-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#888;font-weight:700;margin-bottom:8px;display:block}
+.nps-score{font-size:42px;font-weight:800;line-height:1;letter-spacing:-2px;font-family:'DM Serif Display',serif}
+.nps-band{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block;margin-top:6px}
+.nps-meta{font-size:10px;color:#aaa;margin-top:6px;display:block}
+
+/* ── BAR ROWS ── */
+.br{margin-bottom:8px}
+.brl{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;font-weight:500;color:var(--ink)}
+.bt{height:7px;border-radius:4px;background:#EDF0F3}
+.bf{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+
+/* ── CHARTS ── */
+.cw{position:relative;height:180px;margin-top:8px}
+.cw-lg{position:relative;height:210px;margin-top:8px}
+
+/* ── QUOTE CARDS ── */
+.theme-block{border:1px solid var(--border);border-radius:10px;padding:14px;background:#FAFBFC}
+.theme-title{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;gap:8px}
+.theme-pct{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:#EBF5FF;color:var(--teal)}
+.theme-desc{font-size:11px;color:#666;margin:5px 0 10px;line-height:1.5}
+.quote{border-left:3px solid var(--teal);padding:7px 11px;margin-bottom:7px;background:#F4F8FA;border-radius:0 7px 7px 0}
+.quote p{font-size:12px;font-style:italic;color:var(--ink);margin-bottom:2px;line-height:1.55}
+.quote small{font-size:9px;color:#888;font-weight:600}
+
+/* ── QUAL blocks ── */
+.qb{border-left:3px solid var(--border);padding:7px 11px;margin-bottom:6px;background:#FAFBFC;border-radius:0 7px 7px 0}
+.qb p{font-size:12px;font-style:italic;color:var(--ink);margin-bottom:2px;line-height:1.5}
+.qb small{font-size:9px;color:#888;font-weight:600}
+
+/* ── EXEC PANELS ── */
+.win{padding:12px 14px;margin-bottom:8px;background:#F0F9F4;border:1.5px solid #4F9262;border-radius:9px}
+.win h4{font-size:12px;font-weight:700;color:#006B3A;margin-bottom:3px}
+.win p{font-size:11px;color:#444;line-height:1.65;margin:0}
+.gap{padding:12px 14px;margin-bottom:8px;background:#FFF8F0;border:1.5px solid #D4820A;border-radius:9px}
+.gap h4{font-size:12px;font-weight:700;color:#A35C00;margin-bottom:3px}
+.gap p{font-size:11px;color:#444;line-height:1.65;margin:0}
+.gred{padding:12px 14px;margin-bottom:8px;background:#FEF2F2;border:1.5px solid var(--red);border-radius:9px}
+.gred h4{font-size:12px;font-weight:700;color:#9B1C1C;margin-bottom:3px}
+.gred p{font-size:11px;color:#444;line-height:1.65;margin:0}
+.action-row{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.anum{width:28px;height:28px;border-radius:50%;background:#EBF5FF;border:2px solid var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--teal);flex-shrink:0}
+.at{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.ab{font-size:11px;color:#555;line-height:1.6;margin-bottom:5px}
+.utag{font-size:9px;font-weight:700;text-transform:uppercase;padding:2px 8px;border-radius:4px;display:inline-block}
+
+/* ── SITE PERF ── */
+.rank-table{width:100%;border-collapse:collapse;font-size:12px}
+.rank-table thead th{padding:7px 10px;text-align:left;color:#666;font-weight:700;border-bottom:2px solid var(--border);font-size:9px;text-transform:uppercase;letter-spacing:.06em}
+.rank-table tbody td{padding:9px 10px;border-bottom:1px solid var(--border)}
+.rank-table tbody tr:hover{background:#FAFBFC}
+.nps-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-weight:800;font-size:12px}
+.rank-badge{font-size:11px;font-weight:700;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+
+/* ── SMS ── */
+.sms-bar{background:#EBF5FF;border:1.5px solid var(--teal);border-radius:8px;padding:8px 14px;font-size:11px;color:var(--teal);font-weight:600}
+
+/* ── AI TAB ── */
+.ai-ctx{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#666;padding:9px 14px;background:#F7F9FB;border-radius:7px;margin-bottom:14px;border:1px solid var(--border)}
+.gen-btn{padding:12px 28px;border-radius:8px;border:none;background:var(--ink);color:#fff;font-size:13px;cursor:pointer;font-weight:700;transition:background .2s;width:auto}
+.gen-btn:hover{background:#1a4a5c}
+.gen-btn:disabled{background:#C5CDD6;color:#888;cursor:not-allowed}
+.ai-out{margin-top:14px;border-left:4px solid var(--teal);background:#fff;border-radius:0 10px 10px 0;padding:16px}
+.ai-out pre{font-size:12px;line-height:1.9;color:var(--ink);white-space:pre-wrap;font-family:var(--font);margin:0}
+
+/* ── HEATMAP ── */
+.hm{width:100%;border-collapse:collapse;margin-top:12px;font-size:11px}
+.hm th{padding:6px 8px;color:#666;font-weight:700;font-size:9px;text-transform:uppercase;border-bottom:2px solid var(--border);text-align:center}
+.hm td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:center;font-weight:700}
+
+/* ── WEEK TABLE ── */
+.wt{width:100%;border-collapse:collapse;font-size:12px}
+.wt thead th{padding:6px 8px;font-size:9px;text-transform:uppercase;color:#888;font-weight:700;border-bottom:2px solid var(--border)}
+.wt tbody td{padding:8px;border-bottom:1px solid var(--border)}
+.wt tbody td:first-child{font-weight:700;color:var(--teal)}
+
+footer{text-align:right;font-size:10px;color:#aaa;padding:10px 24px 16px;border-top:1px solid var(--border);max-width:1180px;margin:0 auto}
+
+@media(max-width:800px){
+  .kpi-inner{grid-template-columns:repeat(3,1fr)}
+  .g2,.g3,.g4,.ga{grid-template-columns:1fr}
+  .hdr-inner,.hdr-right{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="brand">
+      <span class="ebadge">E!</span>
+      <div>
+        <div class="hdr-title">EBA November — Youth Voices Dashboard</div>
+        <div class="hdr-sub">Bootcamp Academy · Iganga &amp; Mayuge · 8 Sites · 2 Weeks</div>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div class="live"><span class="ldot"></span><span class="ltxt">Live Data</span></div>
+      <span class="badge" id="resp-count">Loading…</span>
+    </div>
+  </div>
+</div>
+
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi-inner">
+    <div class="kpi-cell"><span class="kl">Programme NPS</span><span class="kv" id="k-nps"></span><span class="ks">Promoters 9–10 · Detractors 0–6</span></div>
+    <div class="kpi-cell"><span class="kl">Youth Surveyed</span><span class="kv" id="k-total" style="color:var(--amber)"></span><span class="ks" id="k-sites"></span></div>
+    <div class="kpi-cell"><span class="kl">Avg Meals Score</span><span class="kv" id="k-meals" style="color:#f4b14d"></span><span class="ks">out of 10</span></div>
+    <div class="kpi-cell"><span class="kl">Avg Transport</span><span class="kv" id="k-transport" style="color:#E07B39"></span><span class="ks">timeliness /10</span></div>
+    <div class="kpi-cell"><span class="kl">Challenge Rate</span><span class="kv" id="k-barrier"></span><span class="ks">reporting a barrier</span></div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="fbar">
+  <span style="font-size:11px;color:#666;font-weight:700">Filter survey:</span>
+  <div><span class="fl">Week</span><select id="f-week"><option>All</option><option>WEEK1</option><option>WEEK2</option></select></div>
+  <div><span class="fl">District</span><select id="f-district"><option>All</option><option>IGANGA</option><option>MAYUGE</option></select></div>
+  <div><span class="fl">Gender</span><select id="f-gender"><option>All</option><option>Female</option><option>Male</option></select></div>
+  <button class="rbtn" onclick="reset()">↺ Reset</button>
+  <span class="fnote">SMS data unfiltered</span>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tb on"  onclick="go('exec',this)">📊 Executive Summary</button>
+  <button class="tb"     onclick="go('nps',this)">📈 NPS Analysis</button>
+  <button class="tb"     onclick="go('trainer',this)">🏫 Trainer</button>
+  <button class="tb"     onclick="go('sites',this)">📍 Site Performance</button>
+  <button class="tb"     onclick="go('voices',this)">💬 Youth Voices</button>
+  <button class="tb"     onclick="go('qual',this)">📝 Qualitative Insights</button>
+  <button class="tb"     onclick="go('sms',this)">📱 SMS Short Code</button>
+  <button class="tb"     onclick="go('ai',this)">🤖 AI Report</button>
+</div>
+
+<div class="body">
+
+<!-- ════════════════════════ EXECUTIVE SUMMARY ════════════════════════ -->
+<div id="pane-exec" class="pane on">
+  <div class="card" style="background:linear-gradient(135deg,var(--ink) 0%,#1B4F63 100%);border:none;padding:22px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px">
+      <div>
+        <div style="font-size:9px;color:#7A9BAD;text-transform:uppercase;letter-spacing:.12em;font-weight:700;margin-bottom:6px">Executive Brief · EBA November 2025</div>
+        <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px;font-family:'DM Serif Display',serif">Educate! Bootcamp Academy — Programme Health Report</div>
+        <div style="font-size:11px;color:#7A9BAD">Iganga &amp; Mayuge · 81 youth surveyed · 475 SMS responses · 8 training sites</div>
+      </div>
+      <div id="exec-nps-big" style="text-align:right"></div>
+    </div>
+  </div>
+  <div class="ga" id="exec-stats"></div>
+  <div class="g2">
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:7px"><span>✅</span> What's Working</div>
+      <div id="wins"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:12px;display:flex;align-items:center;gap:7px"><span>⚠️</span> What Needs Attention</div>
+      <div id="gaps"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:14px;display:flex;align-items:center;gap:7px"><span>🎯</span> Priority Actions</div>
+    <div id="actions"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ NPS ANALYSIS ════════════════════════ -->
+<div id="pane-nps" class="pane">
+  <div class="card" style="background:#EBF5FF;border-color:var(--teal)">
+    <span class="ct" style="color:var(--teal)">NPS Formula — applied consistently across all 4 components</span>
+    <div style="font-size:12px;color:var(--ink);line-height:1.9">
+      <strong style="color:var(--teal)">NPS = (Promoters − Detractors) ÷ Total Responses × 100</strong><br>
+      Promoters = scores <strong>9–10</strong> &nbsp;·&nbsp; Passives = <strong>7–8</strong> &nbsp;·&nbsp; Detractors = <strong>0–6</strong>
+    </div>
+  </div>
+  <div class="g4" id="nps-4cards"></div>
+  <div class="g2">
+    <div class="card"><span class="ct">Programme NPS — week trend</span><div class="cw"><canvas id="c-prog-nps"></canvas></div></div>
+    <div class="card"><span class="ct">Programme NPS — by gender</span><div class="cw"><canvas id="c-gender-nps"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><span class="ct">NPS component comparison — all sites avg</span><div class="cw"><canvas id="c-comp-nps"></canvas></div></div>
+    <div class="card">
+      <span class="ct">Week-on-week NPS summary</span>
+      <table class="wt" style="margin-top:4px">
+        <thead><tr><th>Component</th><th>Week 1</th><th>Week 2</th><th>Δ</th></tr></thead>
+        <tbody id="nps-week-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card">
+    <span class="ct">Programme NPS — promoter / passive / detractor breakdown</span>
+    <div class="g3" id="nps-ppd"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ TRAINER TAB ════════════════════════ -->
+<div id="pane-trainer" class="pane">
+  <div class="ga" id="trainer-stats"></div>
+  <div class="g2">
+    <div class="card"><span class="ct">Trainer 1 — comfort &amp; clarity by week</span><div class="cw"><canvas id="c-t1-week"></canvas></div></div>
+    <div class="card"><span class="ct">Trainer 2 — comfort &amp; clarity by week</span><div class="cw"><canvas id="c-t2-week"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><span class="ct">Trainer 1 comfort — avg by site</span><div class="cw"><canvas id="c-t1-site"></canvas></div></div>
+    <div class="card"><span class="ct">Trainer 2 comfort — avg by site</span><div class="cw"><canvas id="c-t2-site"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><span class="ct">Trainer feedback score (1–5 scale) — distribution</span><div class="cw"><canvas id="c-tfeedback"></canvas></div></div>
+    <div class="card"><span class="ct">Business readiness — did youth feel ready to start?</span><div class="cw"><canvas id="c-bizready"></canvas></div></div>
+  </div>
+  <div class="card">
+    <span class="ct">Trainer scores — by gender comparison</span>
+    <div class="g4" id="trainer-gender"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ SITE PERFORMANCE ════════════════════════ -->
+<div id="pane-sites" class="pane">
+  <div class="g2">
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:14px;display:flex;align-items:center;gap:7px">🏆 Top 5 Sites by NPS</div>
+      <table class="rank-table" id="top5"></table>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:var(--red);margin-bottom:14px;display:flex;align-items:center;gap:7px">⚠️ Bottom 5 Sites — Need Attention</div>
+      <table class="rank-table" id="bot5"></table>
+    </div>
+  </div>
+  <div class="card"><span class="ct">All sites — NPS ranking</span><div class="cw-lg"><canvas id="c-site-rank"></canvas></div></div>
+  <div class="card">
+    <span class="ct">Performance heatmap — all sites × key metrics</span>
+    <table class="hm" id="heatmap"></table>
+  </div>
+</div>
+
+<!-- ════════════════════════ YOUTH VOICES ════════════════════════ -->
+<div id="pane-voices" class="pane">
+  <div class="g3" id="theme-summary-stats"></div>
+  <div class="sdiv"><span class="slbl">What Youth Are Learning — Themed &amp; Curated</span></div>
+  <div id="theme-blocks"></div>
+</div>
+
+<!-- ════════════════════════ QUALITATIVE INSIGHTS ════════════════════════ -->
+<div id="pane-qual" class="pane">
+  <div class="sdiv"><span class="slbl">Key Learning Themes (Q12)</span></div>
+  <div class="card">
+    <span class="ct">Theme frequency — what youth said they learned</span>
+    <div id="q-theme-bars" style="margin-bottom:14px"></div>
+    <div class="g2" id="q-learning-quotes"></div>
+  </div>
+  <div class="sdiv"><span class="slbl">Lesson Improvement Suggestions (Q13)</span></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="ct" style="margin:0">What youth want improved in lessons</span>
+      <span id="q-li-ct" style="font-size:11px;color:var(--teal);background:#EBF5FF;border:1px solid var(--teal);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+    </div>
+    <div id="q-lessonimp" style="columns:2;column-gap:14px"></div>
+  </div>
+  <div class="sdiv"><span class="slbl">General Feedback for Improvement (Q14)</span></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="ct" style="margin:0">Programme feedback — all voices</span>
+      <span id="q-fb-ct" style="font-size:11px;color:var(--teal);background:#EBF5FF;border:1px solid var(--teal);padding:2px 10px;border-radius:20px;font-weight:700"></span>
+    </div>
+    <div id="q-feedback" style="columns:2;column-gap:14px"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════ SMS SHORT CODE ════════════════════════ -->
+<div id="pane-sms" class="pane">
+  <div class="sms-bar" id="sms-info"></div>
+  <div class="ga" id="sms-stats"></div>
+  <div class="g2">
+    <div class="card"><span class="ct">Programme satisfaction score — distribution (0–10)</span><div class="cw"><canvas id="c-sms-prog"></canvas></div></div>
+    <div class="card"><span class="ct">Meals score — distribution (Peer Leader reports)</span><div class="cw"><canvas id="c-sms-meals"></canvas></div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <span class="ct">SMS NPS segments — programme satisfaction</span>
+      <div id="sms-nps-segs"></div>
+    </div>
+    <div class="card">
+      <span class="ct">Learning environment &amp; trainer support (Yes/No)</span>
+      <div id="sms-yesno"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════ AI REPORT ════════════════════════ -->
+<div id="pane-ai" class="pane">
+  <div class="card">
+    <span class="ct">AI Leadership Report Generator</span>
+    <p style="font-size:12px;color:#666;line-height:1.7;margin:0 0 12px">Analyses your filtered survey data and the full SMS dataset to produce a structured evidence-based leadership brief with priority actions.</p>
+    <div class="ai-ctx" id="ai-ctx"></div>
+    <button class="gen-btn" id="gen-btn" onclick="generateAI()">⚡ Generate AI Leadership Report</button>
+  </div>
+  <div id="ai-result"></div>
+</div>
+
+</div><!-- /body -->
+<footer id="ftxt">E! BA Youth Voices · OOSY Bootcamps · EBA November</footer>
+
+<script>
+// ════════════════════ DATA ════════════════════
+const SURVEY = [{"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 7, "t1c": 10, "t1u": 10, "t2c": 7, "t2u": 8, "meals": 7, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Business management", "lesson_improve": "Nothing", "feedback": "Food", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 9, "t2c": 4, "t2u": 5, "meals": 6, "venue": 10, "transport": 9, "start_biz": 8, "t_feedback": 3, "barrier": "no", "key_learning": "Further thinking on business ideas.", "lesson_improve": "Improving on foods.", "feedback": "Menus.", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 1, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Handling a business", "lesson_improve": null, "feedback": "Breakfast should be heavier", "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 9, "t2c": 9, "t2u": 8, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "How to start up a business", "lesson_improve": "Write the booklet in local language", "feedback": null, "trainer1": "Muyonjo Hatimu", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 8, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Believing in myself", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "How to look for a market", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 9, "venue": 10, "transport": 10, "start_biz": 9, "t_feedback": 5, "barrier": "no", "key_learning": "Yes I can", "lesson_improve": "Rotating of trainer at site", "feedback": null, "trainer1": "Muyonjo Hatimu", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "yes", "key_learning": "Having passion for my business", "lesson_improve": null, "feedback": "Venue site should be nearer", "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Male", "nps": 9, "t1c": 10, "t1u": 9, "t2c": 10, "t2u": 9, "meals": 10, "venue": 9, "transport": 10, "start_biz": 9, "t_feedback": 5, "barrier": "no", "key_learning": "Tree of life", "lesson_improve": null, "feedback": null, "trainer1": "Muyonjo Hatimu", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 10, "venue": 10, "transport": 10, "start_biz": 9, "t_feedback": 5, "barrier": "yes", "key_learning": "He can start a available business", "lesson_improve": "Transport", "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 9, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 10, "meals": 9, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Think feel and Do", "lesson_improve": null, "feedback": null, "trainer1": "Muyonjo Hatimu", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Female", "nps": 5, "t1c": 5, "t1u": 7, "t2c": 9, "t2u": 8, "meals": 10, "venue": 9, "transport": 9, "start_biz": 6, "t_feedback": 4, "barrier": "yes", "key_learning": "Perssion", "lesson_improve": "Lowering the voice during the lesson to avoid over shouting while teaching", "feedback": "None everything is okay", "trainer1": "Muwanguzi Peter", "trainer2": "Mukebezi Gorreti"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 10, "t2c": 9, "t2u": 8, "meals": 9, "venue": 9, "transport": 8, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Yes I can", "lesson_improve": "Rotating trainers one to teach in the morning and another one in the afternoon", "feedback": null, "trainer1": "Muyonjo Hatimu", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 8, "venue": 9, "transport": 8, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Self confidence.", "lesson_improve": "More clarity.", "feedback": "Sources.", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 10, "venue": 10, "transport": 4, "start_biz": 9, "t_feedback": 4, "barrier": "yes", "key_learning": "Being confident, starting my business", "lesson_improve": null, "feedback": "Timelines of transport", "trainer1": "Kayendeke Shamim", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 8, "venue": 10, "transport": 5, "start_biz": 8, "t_feedback": 3, "barrier": "no", "key_learning": "Resistance in business, starting up business with any amount , having a goal", "lesson_improve": null, "feedback": "Just on the time tea is served because we come from far", "trainer1": "Kayendeke Shamim", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Male", "nps": 9, "t1c": 9, "t1u": 9, "t2c": 10, "t2u": 9, "meals": 9, "venue": 10, "transport": 7, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Finding a variable business", "lesson_improve": null, "feedback": null, "trainer1": "Kagoya Pauline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 8, "t2c": 9, "t2u": 7, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "How to start a available business", "lesson_improve": "Teaching her to get what is being taught", "feedback": "Teaching more about business", "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 9, "t1c": 9, "t1u": 9, "t2c": 10, "t2u": 9, "meals": 10, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Being resilient", "lesson_improve": "No", "feedback": "Improve on foods.", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Male", "nps": 10, "t1c": 9, "t1u": 8, "t2c": 9, "t2u": 10, "meals": 10, "venue": 9, "transport": 9, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "How to handle business", "lesson_improve": null, "feedback": null, "trainer1": "Kagoya Pauline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 9, "t2c": 5, "t2u": 8, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Yes I can", "lesson_improve": "Teaching more lessons", "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 9, "t1c": 9, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "How to start a business", "lesson_improve": null, "feedback": null, "trainer1": "Kagoya Pauline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 9, "t1c": 9, "t1u": 9, "t2c": 10, "t2u": 8, "meals": 9, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Passion match", "lesson_improve": null, "feedback": null, "trainer1": "Kagoya Pauline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Female", "nps": 8, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 10, "meals": 8, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Yes I can", "lesson_improve": "Helping in writing for her", "feedback": "Giving her capital", "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "LUGOLORE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 8, "t2c": 8, "t2u": 9, "meals": 10, "venue": 9, "transport": 9, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Starting a business", "lesson_improve": null, "feedback": null, "trainer1": "Kagoya Pauline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 8, "meals": 10, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "I can", "lesson_improve": null, "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 10, "t2c": 10, "t2u": 9, "meals": 9, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Being creative resilient", "lesson_improve": "Nothing", "feedback": "Nothing", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 8, "venue": 10, "transport": 5, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "How to start a available business", "lesson_improve": "Training more lessons", "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Male", "nps": 10, "t1c": 8, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 7, "venue": 10, "transport": 5, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Tree of life", "lesson_improve": "Drinks", "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 7, "t2u": 7, "meals": 8, "venue": 8, "transport": 10, "start_biz": 9, "t_feedback": 5, "barrier": "no", "key_learning": "CustomersCare and consultations", "lesson_improve": "Non applicable.", "feedback": "Non", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 7, "t1c": 7, "t1u": 10, "t2c": 5, "t2u": 8, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Identifying viable business.", "lesson_improve": "Non", "feedback": "Nothing", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 8, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "yes", "key_learning": "Not losing hope and trusting in myself that I can", "lesson_improve": "Nothing", "feedback": "Increase on transport fee for those who come from nango, they are getting 3k RT yet they use 6k RT", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Female", "nps": 9, "t1c": 9, "t1u": 9, "t2c": 9, "t2u": 8, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "I can stand as a person to start a business, tree of life", "lesson_improve": "Nothing", "feedback": "Nothing", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 7, "t2c": 9, "t2u": 9, "meals": 10, "venue": 10, "transport": 7, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "Tree of life, I can start from bad to good", "lesson_improve": "Nothing", "feedback": "Increase on transport fee", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Female", "nps": 9, "t1c": 9, "t1u": 9, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Qualities of a good entrepreneur", "lesson_improve": "Helping the peer leader interprete content in the language everyone understands", "feedback": "Nothing", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 9, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "How to start a business and consistence while handling it", "lesson_improve": "Nothing", "feedback": "Nothing", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Being patient, creative and a decision maker", "lesson_improve": "Nothing", "feedback": "Having water Jerrican in the toilet", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 9, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Accountability in business", "lesson_improve": "Nothing", "feedback": "Nothing", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "MAYUGE", "site": "MALONGO S/C", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 10, "transport": 10, "start_biz": 9, "t_feedback": 5, "barrier": "no", "key_learning": "Yes I can, no matter what people talk", "lesson_improve": "Nothing", "feedback": "Nothing", "trainer1": "Kirabo Gideon", "trainer2": "Saama Silverster"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 10, "venue": 8, "transport": 5, "start_biz": 8, "t_feedback": 5, "barrier": "no", "key_learning": "Customer care and business management", "lesson_improve": null, "feedback": null, "trainer1": "Babirye Phiona", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 7, "t1c": 9, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 9, "venue": 9, "transport": 5, "start_biz": 9, "t_feedback": 4, "barrier": "no", "key_learning": "How to do a sustainable business, finding a business location", "lesson_improve": "The sitting arrangements like pushing the desks on wall", "feedback": "Transport timelines to be daily", "trainer1": "Babirye Phiona", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Female", "nps": 5, "t1c": 9, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 1, "start_biz": 10, "t_feedback": 5, "barrier": "yes", "key_learning": "Qualities of a good interprenures", "lesson_improve": "Explanations", "feedback": "Transport to be given daily", "trainer1": "Mukebezi Gorreti", "trainer2": "Muwanguzi Peter"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Female", "nps": 9, "t1c": 10, "t1u": 10, "t2c": 7, "t2u": 8, "meals": 6, "venue": 10, "transport": 7, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Think feel do, because before starting a business you first have to think about the business and others follow", "lesson_improve": "some people are found of moving up and down, it should stop", "feedback": "they should prepare some other types of food like cassava", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Male", "nps": 7, "t1c": 10, "t1u": 10, "t2c": 7, "t2u": 7, "meals": 10, "venue": 10, "transport": 8, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "think feel do was so important to me", "lesson_improve": "we need some breaks because the lessons are too long", "feedback": "they should change the sauce coz we are over eating beans and pease", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Female", "nps": 9, "t1c": 10, "t1u": 10, "t2c": 8, "t2u": 8, "meals": 9, "venue": 9, "transport": 8, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "I learnt to make decisions by my own", "lesson_improve": "they should remove the 15 mins break", "feedback": "the venue is not convenient for some of us", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Female", "nps": 9, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 9, "venue": 10, "transport": 7, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "I feel confident in starting my business", "lesson_improve": null, "feedback": "Nothing", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Female", "nps": 8, "t1c": 9, "t1u": 10, "t2c": 7, "t2u": 8, "meals": 10, "venue": 9, "transport": 7, "start_biz": 7, "t_feedback": 5, "barrier": "no", "key_learning": "I learnt to be persistent to my goals in life and my businesses", "lesson_improve": "Nothing", "feedback": "they should increase some money for transport because where I come from is very far, I use 6000 RT but they sent me a msg saying that I will be receiving 3000 RT", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Male", "nps": 10, "t1c": 9, "t1u": 8, "t2c": 9, "t2u": 9, "meals": 7, "venue": 9, "transport": 7, "start_biz": 9, "t_feedback": 5, "barrier": "no", "key_learning": "you don't need to start a business with millions, even if u have little, you can still start one", "lesson_improve": "too much time for the lessons", "feedback": "they should improve one quality of the food", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Male", "nps": 7, "t1c": 9, "t1u": 10, "t2c": 6, "t2u": 10, "meals": 10, "venue": 6, "transport": 7, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "to persist on the business", "lesson_improve": "everything is okay", "feedback": null, "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Female", "nps": 7, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 9, "transport": 8, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Passion", "lesson_improve": null, "feedback": null, "trainer1": "Muwanguzi Peter", "trainer2": "Mukebezi Gorreti"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 9, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Customer care and confidence", "lesson_improve": "Translating the book in lusoga", "feedback": null, "trainer1": "Babirye Phiona", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Male", "nps": 9, "t1c": 10, "t1u": 10, "t2c": 9, "t2u": 10, "meals": 9, "venue": 9, "transport": 6, "start_biz": 9, "t_feedback": 3, "barrier": "yes", "key_learning": "Believing i my self and starting with the little i have", "lesson_improve": "The content being given to us is alot for us", "feedback": "The timelines for transport", "trainer1": "Babirye Phiona", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST ANDREWS WABULUNGU", "gender": "Female", "nps": 10, "t1c": 9, "t1u": 10, "t2c": 9, "t2u": 9, "meals": 10, "venue": 9, "transport": 6, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "think, feel do is so important to me", "lesson_improve": "time given for lessons is too much", "feedback": "the money am going to get for transport is too little yet I come from very far", "trainer1": "Nabwire Jackline", "trainer2": "Balita Hakim"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Male", "nps": 7, "t1c": 10, "t1u": 8, "t2c": 8, "t2u": 8, "meals": 10, "venue": 8, "transport": 10, "start_biz": 10, "t_feedback": 2, "barrier": "no", "key_learning": "Tree of life", "lesson_improve": null, "feedback": null, "trainer1": "Mukebezi Gorreti", "trainer2": "Muwanguzi Peter"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ADRA OLD SITE", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "How to handle a business", "lesson_improve": "Teaching more lessons", "feedback": null, "trainer1": "Bagalaliwo Monic", "trainer2": "Olumah David"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Male", "nps": 8, "t1c": 9, "t1u": 9, "t2c": 10, "t2u": 9, "meals": 10, "venue": 10, "transport": 5, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Tree of life", "lesson_improve": null, "feedback": null, "trainer1": "Mukebezi Gorreti", "trainer2": "Muwanguzi Peter"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Male", "nps": 9, "t1c": 6, "t1u": 7, "t2c": 8, "t2u": 8, "meals": 10, "venue": 10, "transport": 9, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Market", "lesson_improve": null, "feedback": null, "trainer1": "Mukebezi Gorreti", "trainer2": "Muwanguzi Peter"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Marketing my business", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Having confidence in my business", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 8, "t2c": 10, "t2u": 8, "meals": 10, "venue": 9, "transport": 8, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Passion", "lesson_improve": null, "feedback": null, "trainer1": "Muwanguzi Peter", "trainer2": "Mukebezi Gorreti"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Finding a market", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Knowing my market", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 1, "start_biz": 10, "t_feedback": 4, "barrier": "yes", "key_learning": "That yes i can", "lesson_improve": "Limiting of people who come inside our class and they sit behind without participating by giving answers", "feedback": "Giving us some start up transport, we come from very far and we don't have money, we end up reaching late at School because at times we foot", "trainer1": "Kayendeke Shamim", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Female", "nps": 8, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 9, "venue": 9, "transport": 7, "start_biz": 7, "t_feedback": 5, "barrier": "no", "key_learning": "Customer care, being open to new things like the games we play, appreciating one another", "lesson_improve": null, "feedback": "Cooking some milk at times", "trainer1": "Kayendeke Shamim", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Customer management", "lesson_improve": "Had no particular reason", "feedback": "To start cooking us some mukene for us who have ulcers", "trainer1": "Kayendeke Shamim", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "BUGABWE P/S", "gender": "Male", "nps": 8, "t1c": 10, "t1u": 9, "t2c": 9, "t2u": 9, "meals": 5, "venue": 10, "transport": 4, "start_biz": 9, "t_feedback": 4, "barrier": "yes", "key_learning": "Confidence and believing in myself", "lesson_improve": "To remove the peer sessions so that we get lots of time with our teachers", "feedback": "To start giving us transport atleast twice a week", "trainer1": "Babirye Phiona", "trainer2": "Zazibu Tanus"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Knowing and having the confidence to start a business", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "IGANGA", "site": "AKAZALIBWA", "gender": "Female", "nps": 7, "t1c": 10, "t1u": 10, "t2c": 8, "t2u": 9, "meals": 10, "venue": 9, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Market research", "lesson_improve": "Additional of time", "feedback": null, "trainer1": "Muwanguzi Peter", "trainer2": "Mukebezi Gorreti"}, {"week": "WEEK1", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Knowing my kind of market", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK1", "district": "MAYUGE", "site": "ST PHILIP KITOVU", "gender": "Female", "nps": 8, "t1c": 8, "t1u": 8, "t2c": 8, "t2u": 6, "meals": 8, "venue": 9, "transport": 8, "start_biz": 7, "t_feedback": 3, "barrier": "no", "key_learning": "Resilient", "lesson_improve": "Non", "feedback": "Non applicable", "trainer1": "Namukono Jannet", "trainer2": "Olumah David"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Budgeting my business well", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Planning for my business well", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Treating my customer well", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Not involving family in business", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Male", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Not involving family in business", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Properly budgeting for my business", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 9, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Confidence in starting a business and planning", "lesson_improve": "Adding projectors to show videos of successful youth from the program", "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Not involving family in business because it can lead the business not succeeding", "lesson_improve": null, "feedback": null, "trainer1": "Weyabirell Jesca", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Negotiations and there importance", "lesson_improve": null, "feedback": "Venue being closer", "trainer1": "Namulidwa Deborah", "trainer2": "Mukesi Cornelirius"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 10, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 5, "barrier": "no", "key_learning": "Having a good relationship with the customers", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}, {"week": "WEEK2", "district": "IGANGA", "site": "KIDAAGO P/S", "gender": "Female", "nps": 10, "t1c": 10, "t1u": 10, "t2c": 10, "t2u": 10, "meals": 9, "venue": 10, "transport": 10, "start_biz": 10, "t_feedback": 4, "barrier": "no", "key_learning": "Have a clear budget and avoid mixing the business with family", "lesson_improve": null, "feedback": null, "trainer1": "Mukesi Cornelirius", "trainer2": "Namulidwa Deborah"}];
+const SMS = [{"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 4.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 2.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": 2.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 4.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 4.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": 1.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": 2.0}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 4.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 3.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 4.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 3.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 8.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 9.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 7.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 6.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 7.0, "peer_score": 2.0}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Other", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 5.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 6.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Other", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": 10.0, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Other", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 1.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 5.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 3.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 8.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Other", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "No", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 9.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 2.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Other", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": "Yes", "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Other", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": 10.0, "meals_score": null, "peer_score": null}, {"role": "Peer_leader", "learning_env": null, "trainer_support": null, "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "Yes", "prog_score": null, "meals_score": null, "peer_score": null}, {"role": "Youth", "learning_env": null, "trainer_support": "No", "prog_score": 6.0, "meals_score": null, "peer_score": null}];
+
+// ════════════════════ HELPERS ════════════════════
+const SKIP=['n/a','na','nothing','none','non','non applicable','no','nothing.','n/a.','nan','null',''];
+function skip(v){return !v||SKIP.includes(String(v).toLowerCase().trim());}
+function avg(a){const v=a.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((a,b)=>a+b)/v.length:0;}
+function calcNPS(arr,key){
+  const v=arr.filter(d=>d[key]!=null&&!isNaN(d[key])&&d[key]>=0&&d[key]<=10);
+  if(!v.length)return null;
+  return (v.filter(d=>d[key]>=9).length - v.filter(d=>d[key]<=6).length)/v.length*100;
+}
+function fNPS(v){return v===null?"—":(v>=0?"+":"")+v.toFixed(1);}
+function npsC(v){return v===null?"#888":v>=50?"#008148":v>=0?"#D4820A":"#C0392B";}
+function npsBand(v){
+  if(v===null)return{t:"No data",bg:"#EEE",c:"#888"};
+  if(v>=50)return{t:"Excellent",bg:"#F0F9F4",c:"#006B3A"};
+  if(v>=25)return{t:"Good",bg:"#FFF8E7",c:"#A35C00"};
+  if(v>=0) return{t:"Needs work",bg:"#FFF8E7",c:"#D4820A"};
+  return{t:"Critical",bg:"#FEF2F2",c:"#9B1C1C"};
+}
+const THEMES=[
+  {id:"biz",l:"Business & Entrepreneurship",kw:["business","entrepreneur","market","budget","plan","customer","capital","idea","start","handle","viable"],emoji:"💼",desc:"Youth articulating business concepts, market thinking and financial readiness."},
+  {id:"conf",l:"Confidence & Mindset",kw:["confident","confidence","yes i can","believe","persist","resilient","passion","hope","strong","trust","mindset"],emoji:"💪",desc:"Youth expressing newfound belief in themselves and their ability to succeed."},
+  {id:"tfd",l:"Think Feel Do / Tree of Life",kw:["think feel","feel do","tree of life","tree","tfd","thinking"],emoji:"🌳",desc:"Core E! framework internalized — youth applying the TFD cycle to decisions."},
+  {id:"adv",l:"Advocacy & Voice",kw:["advocate","speak","gepic","voice","public speaking","stand"],emoji:"📢",desc:"Youth finding their voice and learning to advocate for themselves and their goals."},
+  {id:"fin",l:"Financial & Planning",kw:["budget","save","capital","fund","account","money","finance","plan"],emoji:"📊",desc:"Youth developing financial literacy and planning skills for their businesses."},
+];
+
+// ── State ──────────────────────────────────────
+let fW="All",fD="All",fG="All";
+let CH={};
+function getSV(){return SURVEY.filter(d=>(fW==="All"||d.week===fW)&&(fD==="All"||d.district===fD)&&(fG==="All"||d.gender===fG));}
+
+// ── Chart helpers ──────────────────────────────
+const TK={color:"#A0AEC0",font:{size:10}};
+const GR={color:"#EDF0F3"};
+const LEG={labels:{color:"#666",boxWidth:10,font:{size:10}}};
+function bOpts(yLbl,maxY){return{responsive:true,maintainAspectRatio:false,plugins:{legend:LEG},scales:{x:{ticks:TK,grid:GR},y:{ticks:TK,grid:GR,min:0,max:maxY||undefined,title:{display:!!yLbl,text:yLbl,color:"#999",font:{size:9}}}}};}
+function mkChart(id,cfg){if(CH[id])CH[id].destroy();const c=document.getElementById(id);if(c)CH[id]=new Chart(c,cfg);}
+
+// ── DOM helpers ────────────────────────────────
+function barRow(l,v,max,c,sfx){
+  const p=max?Math.min(v/max*100,100):v;
+  return`<div class="br"><div class="brl"><span>${l}</span><span style="color:${c};font-weight:700">${typeof v==="number"?v.toFixed(1):v}${sfx||""}</span></div><div class="bt"><div class="bf" style="width:${Math.max(p,1)}%;background:${c}"></div></div></div>`;
+}
+function sc(l,v,c,s){return`<div class="sc" style="border-top-color:${c}"><span class="sl">${l}</span><span class="sv" style="color:${c}">${v}</span>${s?`<span class="ss">${s}</span>`:""}</div>`;}
+function npsCard(label,score,sub){
+  const b=npsBand(score);
+  return`<div class="nps-card"><span class="nps-label">${label}</span><div class="nps-score" style="color:${npsC(score)}">${fNPS(score)}</div><span class="nps-band" style="background:${b.bg};color:${b.c}">${b.t}</span><span class="nps-meta">${sub}</span></div>`;
+}
+function rankRow(rank,site,nps,n,dist,isTop){
+  const c=isTop?"#008148":"#C0392B";
+  const bg=isTop?"#F0F9F4":"#FEF2F2";
+  return`<tr><td style="padding:9px 10px;border-bottom:1px solid var(--border)"><span class="rank-badge" style="background:${bg};color:${c}">${rank}</span></td><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-weight:600">${site}</td><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-size:10px;color:#888">${dist}</td><td style="padding:9px 10px;border-bottom:1px solid var(--border)"><span class="nps-pill" style="background:${bg};color:${c}">${fNPS(nps)}</span></td><td style="padding:9px 10px;border-bottom:1px solid var(--border);font-size:11px;color:#888">${n} resp.</td></tr>`;
+}
+
+// ════════════════════ RENDER ════════════════════
+function render(){
+  const sv=getSV();
+  const svNPS=calcNPS(sv,"nps");
+  const mealsNPS=calcNPS(sv,"meals");
+  const venueNPS=calcNPS(sv,"venue");
+  const transpNPS=calcNPS(sv,"transport");
+  const weeks=[...new Set(sv.map(d=>d.week))].sort();
+  const sites=[...new Set(sv.map(d=>d.site))].sort();
+  const smsYouth=SMS.filter(d=>d.role==="Youth");
+  const smsProgNPS=calcNPS(smsYouth,"prog_score");
+  const bPct=sv.length?Math.round(sv.filter(d=>d.barrier==="yes").length/sv.length*100):0;
+
+  // ── KPI Strip ──────────────────────────────
+  const kn=document.getElementById("k-nps");kn.textContent=fNPS(svNPS);kn.style.color=npsC(svNPS);
+  document.getElementById("k-total").textContent=sv.length;
+  document.getElementById("k-sites").textContent=[...new Set(sv.map(d=>d.site))].length+" sites · "+[...new Set(sv.map(d=>d.district))].length+" districts";
+  document.getElementById("k-meals").textContent=avg(sv.map(d=>d.meals)).toFixed(1);
+  const kt=document.getElementById("k-transport");kt.textContent=avg(sv.map(d=>d.transport)).toFixed(1);
+  const kb=document.getElementById("k-barrier");kb.textContent=bPct+"%";kb.style.color=bPct>25?"#C0392B":"#D4820A";
+  document.getElementById("resp-count").textContent=sv.length+" survey · "+SMS.length+" SMS";
+
+  // ── EXEC SUMMARY ───────────────────────────
+  document.getElementById("exec-nps-big").innerHTML=
+    `<div style="font-size:9px;color:#7A9BAD;text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Programme NPS</div>`+
+    `<div style="font-size:52px;font-weight:800;color:${npsC(svNPS)};line-height:1;font-family:'DM Serif Display',serif">${fNPS(svNPS)}</div>`+
+    `<div style="font-size:9px;color:#7A9BAD;margin-top:4px">Promoters 9–10 · Detractors 0–6</div>`;
+
+  const w1=sv.filter(d=>d.week==="WEEK1"),w2=sv.filter(d=>d.week==="WEEK2");
+  const n1=calcNPS(w1,"nps"),n2=calcNPS(w2,"nps");
+  const trend=n1!=null&&n2!=null?+(n2-n1).toFixed(1):null;
+  const allSiteNPS=sites.map(s=>calcNPS(sv.filter(d=>d.site===s),"nps")||0);
+  const sitesBelow=allSiteNPS.filter(v=>v<50).length;
+  document.getElementById("exec-stats").innerHTML=[
+    sc("Programme NPS",fNPS(svNPS),npsC(svNPS),"survey-based"),
+    sc("SMS NPS",fNPS(smsProgNPS),npsC(smsProgNPS),"youth satisfaction"),
+    sc("Week Trend",trend===null?"—":(trend>0?"↑ +"+trend+" pts":trend<0?"↓ "+trend+" pts":"→ Stable"),trend===null?"#888":trend>0?"#008148":"#C0392B","W1 → W2"),
+    sc("Sites Below +50",sitesBelow+"/"+sites.length,sitesBelow>2?"#C0392B":"#D4820A","NPS threshold"),
+    sc("Meals Score",avg(sv.map(d=>d.meals)).toFixed(1)+"/10","#f4b14d","avg quality"),
+    sc("Transport Score",avg(sv.map(d=>d.transport)).toFixed(1)+"/10",avg(sv.map(d=>d.transport))<7?"#C0392B":"#D4820A","avg timeliness"),
+    sc("Biz Readiness",avg(sv.map(d=>d.start_biz)).toFixed(1)+"/10","#0F6A8C","start a business"),
+    sc("Challenge Rate",bPct+"%",bPct>25?"#C0392B":"#D4820A","reporting barriers"),
+  ].join("");
+
+  const transpFlags=sv.filter(d=>d.feedback&&/(transport|walk|fare|far)/i.test(d.feedback)).length+sv.filter(d=>d.lesson_improve&&/(transport|walk|fare|far)/i.test(d.lesson_improve)).length;
+  document.getElementById("wins").innerHTML=[
+    {t:`Strong programme endorsement — NPS ${fNPS(svNPS)}`,b:`${Math.round(sv.filter(d=>d.nps>=9).length/sv.length*100)}% of youth scored 9–10 out of 10. Youth consistently use words like "yes I can", "believe in myself" and "confident to start".`},
+    {t:"High trainer performance",b:`Trainer 1 comfort at ${avg(sv.map(d=>d.t1c)).toFixed(1)}/10, clarity ${avg(sv.map(d=>d.t1u)).toFixed(1)}/10. ${Math.round(SMS.filter(d=>d.trainer_support==="Yes").length/Math.max(SMS.filter(d=>d.trainer_support!=null).length,1)*100)}% of SMS respondents confirmed trainer support.`},
+    {t:`${Math.round(SMS.filter(d=>d.learning_env==="Yes").length/Math.max(SMS.filter(d=>d.learning_env!=null).length,1)*100)}% confirm positive learning environment (SMS)`,b:"Youth and peer leaders consistently report a safe, engaging classroom atmosphere. Role plays, stories and illustrations are widely cited."},
+  ].map(x=>`<div class="win"><h4>${x.t}</h4><p>${x.b}</p></div>`).join("");
+
+  document.getElementById("gaps").innerHTML=[
+    {t:`Transport is the #1 barrier — ${transpFlags} combined flags`,b:"Youth at Malongo, Wabulungu & Bugabwe receive 3,000 UGX for round trips costing 6,000 UGX. Several walk to school and arrive late.",cls:"gred"},
+    {t:`Meals NPS ${fNPS(mealsNPS)} — needs improvement`,b:"Youth request food variety (cassava, fish, milk). One report of uncooked food. Menu rotation is a low-cost, high-impact fix.",cls:"gap"},
+    {t:`${sitesBelow} site(s) below +50 NPS — require urgent support`,b:"Sites with lower NPS need targeted FOA coaching, observation visits and peer-leader mentoring this week.",cls:"gap"},
+  ].map(x=>`<div class="${x.cls}"><h4>${x.t}</h4><p>${x.b}</p></div>`).join("");
+
+  document.getElementById("actions").innerHTML=[
+    {t:"Increase & regularise transport reimbursements",b:"Audit actual round-trip costs per site. Align stipends before next bootcamp week. Consider daily TP for far-distance youth.",u:"IMMEDIATE",uc:"#9B1C1C",ubg:"#FEF2F2"},
+    {t:"Coach underperforming trainer–site pairings",b:"Sites with Trainer 2 scores below 7/10 require FOA observation and peer coaching. Deploy top trainers as models.",u:"THIS WEEK",uc:"#9B1C1C",ubg:"#FEF2F2"},
+    {t:"Improve food quality and rotate menu",b:"Engage caterers on menu variety. At least one alternative weekly. Flag medical dietary needs for special provision.",u:"OPERATIONAL",uc:"#A35C00",ubg:"#FFF8E7"},
+    {t:"Replicate best-site practices",b:"Interview FOAs and peer leaders at top-performing sites. Package as a replication brief shared programme-wide.",u:"END OF BOOTCAMP",uc:"#0F6A8C",ubg:"#EBF5FF"},
+  ].map((x,i)=>`<div class="action-row"><div class="anum">${i+1}</div><div style="flex:1"><div class="at">${x.t}</div><div class="ab">${x.b}</div><span class="utag" style="color:${x.uc};background:${x.ubg};border:1px solid ${x.uc}44">${x.u}</span></div></div>`).join("");
+
+  // ── NPS ANALYSIS ───────────────────────────
+  document.getElementById("nps-4cards").innerHTML=[
+    npsCard("Programme NPS",svNPS,"Likely to recommend (Q1)"),
+    npsCard("Meals NPS",mealsNPS,"Quality of meals (Q6)"),
+    npsCard("Venue NPS",venueNPS,"Rate the venue (Q7)"),
+    npsCard("Transport NPS",transpNPS,"Transport timeliness (Q8)"),
+  ].join("");
+
+  // Programme NPS by week
+  const wNPS=weeks.map(w=>+(calcNPS(sv.filter(d=>d.week===w),"nps")||0).toFixed(1));
+  mkChart("c-prog-nps",{type:"bar",data:{labels:weeks,datasets:[{label:"Programme NPS",data:wNPS,backgroundColor:wNPS.map(v=>v>=50?"#008148":v>=0?"#D4820A":"#C0392B"),borderRadius:6,maxBarThickness:70}]},options:{...bOpts("NPS"),plugins:{legend:{display:false}}}});
+
+  // Gender NPS
+  const fNPSv=+(calcNPS(sv.filter(d=>d.gender==="Female"),"nps")||0).toFixed(1);
+  const mNPSv=+(calcNPS(sv.filter(d=>d.gender==="Male"),"nps")||0).toFixed(1);
+  mkChart("c-gender-nps",{type:"bar",data:{labels:["Female","Male"],datasets:[{label:"NPS",data:[fNPSv,mNPSv],backgroundColor:["#9D3E8A","#4D889D"],borderRadius:6,maxBarThickness:80}]},options:{...bOpts("NPS"),plugins:{legend:{display:false}}}});
+
+  // Component NPS comparison
+  const compNPS=[
+    {l:"Programme",v:+(svNPS||0).toFixed(1),c:"#0F6A8C"},
+    {l:"Meals",v:+(mealsNPS||0).toFixed(1),c:"#4F9262"},
+    {l:"Venue",v:+(venueNPS||0).toFixed(1),c:"#9D3E8A"},
+    {l:"Transport",v:+(transpNPS||0).toFixed(1),c:"#C0392B"},
+  ];
+  mkChart("c-comp-nps",{type:"bar",data:{labels:compNPS.map(x=>x.l),datasets:[{label:"NPS",data:compNPS.map(x=>x.v),backgroundColor:compNPS.map(x=>x.c),borderRadius:6,maxBarThickness:60}]},options:{...bOpts("NPS"),plugins:{legend:{display:false}}}});
+
+  // Week NPS table
+  const npsKeys=[["Programme","nps"],["Meals","meals"],["Venue","venue"],["Transport","transport"]];
+  document.getElementById("nps-week-tbl").innerHTML=npsKeys.map(([l,k])=>{
+    const v1=calcNPS(sv.filter(d=>d.week==="WEEK1"),k), v2=calcNPS(sv.filter(d=>d.week==="WEEK2"),k);
+    const d2=v1!=null&&v2!=null?+(v2-v1).toFixed(1):null;
+    const dc=d2==null?"#888":d2>0?"#008148":"#C0392B";
+    return`<tr><td style="color:var(--teal);font-weight:700">${l}</td><td>${fNPS(v1)}</td><td>${fNPS(v2)}</td><td style="color:${dc};font-weight:700">${d2!=null?(d2>0?"+":"")+d2:"—"}</td></tr>`;
+  }).join("");
+
+  // Promoter/Passive/Detractor for programme
+  const nProm=sv.filter(d=>d.nps>=9).length, nPass=sv.filter(d=>d.nps>=7&&d.nps<=8).length, nDet=sv.filter(d=>d.nps!=null&&d.nps<=6).length;
+  document.getElementById("nps-ppd").innerHTML=[
+    sc("Promoters (9–10)",nProm,"#008148",Math.round(nProm/sv.length*100)+"% of respondents"),
+    sc("Passives (7–8)",nPass,"#D4820A",Math.round(nPass/sv.length*100)+"% of respondents"),
+    sc("Detractors (0–6)",nDet,"#C0392B",Math.round(nDet/sv.length*100)+"% of respondents"),
+  ].join("");
+
+  // AI context
+  document.getElementById("ai-ctx").innerHTML=
+    `<span>Survey: ${sv.length}</span><span>·</span><span>SMS: ${SMS.length}</span><span>·</span><span>Week: ${fW}</span><span>·</span><span>District: ${fD}</span><span>·</span><span>Gender: ${fG}</span>`;
+
+  // ── TRAINER TAB ─────────────────────────────
+  const t1cA=avg(sv.map(d=>d.t1c)), t1uA=avg(sv.map(d=>d.t1u));
+  const t2cA=avg(sv.map(d=>d.t2c)), t2uA=avg(sv.map(d=>d.t2u));
+  const tfA=avg(sv.map(d=>d.t_feedback));
+  document.getElementById("trainer-stats").innerHTML=[
+    sc("Trainer 1 Comfort",t1cA.toFixed(1)+"/10","#4D889D"),
+    sc("Trainer 1 Clarity",t1uA.toFixed(1)+"/10","#2980B9"),
+    sc("Trainer 2 Comfort",t2cA.toFixed(1)+"/10","#f4b14d"),
+    sc("Trainer 2 Clarity",t2uA.toFixed(1)+"/10","#E67E22"),
+    sc("Feedback Score",tfA.toFixed(1)+"/5","#0F6A8C","quality of feedback"),
+    sc("Biz Readiness",avg(sv.map(d=>d.start_biz)).toFixed(1)+"/10","#008148","youth ready to start"),
+  ].join("");
+
+  // T1 by week
+  mkChart("c-t1-week",{type:"bar",data:{labels:weeks,datasets:[
+    {label:"Comfort",data:weeks.map(w=>+avg(sv.filter(d=>d.week===w).map(d=>d.t1c)).toFixed(1)),backgroundColor:"#4D889D",borderRadius:4,maxBarThickness:40},
+    {label:"Clarity",data:weeks.map(w=>+avg(sv.filter(d=>d.week===w).map(d=>d.t1u)).toFixed(1)),backgroundColor:"#2980B9",borderRadius:4,maxBarThickness:40},
+  ]},options:bOpts("Score /10",10)});
+
+  mkChart("c-t2-week",{type:"bar",data:{labels:weeks,datasets:[
+    {label:"Comfort",data:weeks.map(w=>+avg(sv.filter(d=>d.week===w).map(d=>d.t2c)).toFixed(1)),backgroundColor:"#f4b14d",borderRadius:4,maxBarThickness:40},
+    {label:"Clarity",data:weeks.map(w=>+avg(sv.filter(d=>d.week===w).map(d=>d.t2u)).toFixed(1)),backgroundColor:"#E67E22",borderRadius:4,maxBarThickness:40},
+  ]},options:bOpts("Score /10",10)});
+
+  // T1 by site
+  const siteAvgs=sites.map(s=>({s,t1c:+avg(sv.filter(d=>d.site===s).map(d=>d.t1c)).toFixed(1),t2c:+avg(sv.filter(d=>d.site===s).map(d=>d.t2c)).toFixed(1)}));
+  mkChart("c-t1-site",{type:"bar",data:{labels:siteAvgs.map(x=>x.s.length>12?x.s.slice(0,12)+"…":x.s),datasets:[{label:"T1 Comfort",data:siteAvgs.map(x=>x.t1c),backgroundColor:siteAvgs.map(x=>x.t1c>=8?"#008148":x.t1c>=6?"#D4820A":"#C0392B"),borderRadius:4,maxBarThickness:28}]},options:{...bOpts("Score /10",10),plugins:{legend:{display:false}}}});
+  mkChart("c-t2-site",{type:"bar",data:{labels:siteAvgs.map(x=>x.s.length>12?x.s.slice(0,12)+"…":x.s),datasets:[{label:"T2 Comfort",data:siteAvgs.map(x=>x.t2c),backgroundColor:siteAvgs.map(x=>x.t2c>=8?"#008148":x.t2c>=6?"#D4820A":"#C0392B"),borderRadius:4,maxBarThickness:28}]},options:{...bOpts("Score /10",10),plugins:{legend:{display:false}}}});
+
+  // Trainer feedback distribution (1-5)
+  const tfc=[1,2,3,4,5];
+  mkChart("c-tfeedback",{type:"bar",data:{labels:["1 (Poor)","2","3","4","5 (Excellent)"],datasets:[{label:"Responses",data:tfc.map(s=>sv.filter(d=>d.t_feedback===s).length),backgroundColor:tfc.map(s=>s>=4?"#008148":s>=3?"#D4820A":"#C0392B"),borderRadius:4,maxBarThickness:55}]},options:{...bOpts("Responses"),plugins:{legend:{display:false}}}});
+
+  // Business readiness
+  mkChart("c-bizready",{type:"bar",data:{labels:[1,2,3,4,5,6,7,8,9,10],datasets:[{label:"Youth",data:[1,2,3,4,5,6,7,8,9,10].map(s=>sv.filter(d=>Math.round(d.start_biz)===s).length),backgroundColor:[1,2,3,4,5,6,7,8,9,10].map(s=>s>=9?"#008148":s>=7?"#D4820A":"#C0392B"),borderRadius:4,maxBarThickness:32}]},options:{...bOpts("Responses"),plugins:{legend:{display:false}}}});
+
+  // Trainer gender comparison
+  const fSV=sv.filter(d=>d.gender==="Female"), mSV=sv.filter(d=>d.gender==="Male");
+  document.getElementById("trainer-gender").innerHTML=[
+    sc("T1 Comfort — Female",avg(fSV.map(d=>d.t1c)).toFixed(1),"#9D3E8A"),
+    sc("T1 Comfort — Male",avg(mSV.map(d=>d.t1c)).toFixed(1),"#4D889D"),
+    sc("T2 Comfort — Female",avg(fSV.map(d=>d.t2c)).toFixed(1),"#9D3E8A"),
+    sc("T2 Comfort — Male",avg(mSV.map(d=>d.t2c)).toFixed(1),"#4D889D"),
+  ].join("");
+
+  // ── SITE PERFORMANCE ──────────────────────
+  const siteList=sites.map(s=>{
+    const r=sv.filter(d=>d.site===s);
+    return{site:s,dist:r[0]?.district||"",n:r.length,nps:calcNPS(r,"nps"),
+      meals:avg(r.map(d=>d.meals)),venue:avg(r.map(d=>d.venue)),transport:avg(r.map(d=>d.transport)),
+      t1c:avg(r.map(d=>d.t1c)),biz:avg(r.map(d=>d.start_biz))};
+  }).sort((a,b)=>(b.nps||0)-(a.nps||0));
+
+  const top5=siteList.slice(0,5), bot5=[...siteList].reverse().slice(0,5);
+  const thead=`<thead><tr><th>#</th><th>Site</th><th>District</th><th>NPS</th><th>Responses</th></tr></thead><tbody>`;
+  document.getElementById("top5").innerHTML=thead+top5.map((s,i)=>rankRow(i+1,s.site.length>20?s.site.slice(0,20)+"…":s.site,s.nps,s.n,s.dist,true)).join("")+"</tbody>";
+  document.getElementById("bot5").innerHTML=thead+bot5.map((s,i)=>rankRow(siteList.length-i,s.site.length>20?s.site.slice(0,20)+"…":s.site,s.nps,s.n,s.dist,false)).join("")+"</tbody>";
+
+  // Site NPS ranking chart
+  const sNPS=siteList.map(s=>+(s.nps||0).toFixed(1));
+  mkChart("c-site-rank",{type:"bar",data:{labels:siteList.map(s=>s.site.length>14?s.site.slice(0,14)+"…":s.site),datasets:[{label:"NPS",data:sNPS,backgroundColor:sNPS.map(v=>v>=50?"#008148":v>=0?"#D4820A":"#C0392B"),borderRadius:5,maxBarThickness:36}]},options:{...bOpts("NPS"),plugins:{legend:{display:false}}}});
+
+  // Heatmap
+  const hmCols=[["Programme NPS","nps",true],["Meals","meals",false],["Venue","venue",false],["Transport","transport",false],["Trainer 1","t1c",false]];
+  const hc=v=>v>=8?"#D4EDDA":v>=6?"#FFF3CD":v>0?"#F8D7DA":"#EEE";
+  document.getElementById("heatmap").innerHTML=
+    `<thead><tr><th style="text-align:left">Site</th>${hmCols.map(([l])=>`<th>${l}</th>`).join("")}</tr></thead>`+
+    `<tbody>${siteList.map(s=>`<tr><td style="text-align:left;font-weight:600;padding:7px 8px;border-bottom:1px solid var(--border)">${s.site.length>20?s.site.slice(0,20)+"…":s.site}</td>${hmCols.map(([,k,isNPS])=>{const r=sv.filter(d=>d.site===s.site);const v=isNPS?(s.nps||0):avg(r.map(d=>d[k]));const disp=isNPS?fNPS(s.nps):v.toFixed(1);const bg=isNPS?(v>=50?"#D4EDDA":v>=0?"#FFF3CD":"#F8D7DA"):hc(v);return`<td style="background:${bg};color:var(--ink)">${disp}</td>`;}).join("")}</tr>`).join("")}</tbody>`;
+
+  // ── YOUTH VOICES ───────────────────────────
+  const themeData=THEMES.map(t=>{
+    const matched=sv.filter(d=>t.kw.some(k=>(d.key_learning||"").toLowerCase().includes(k)));
+    const pct=sv.length?Math.round(matched.length/sv.length*100):0;
+    const quotes=matched.filter(d=>d.key_learning.length>25).slice(0,3);
+    return{...t,count:matched.length,pct,quotes};
+  }).sort((a,b)=>b.count-a.count);
+
+  document.getElementById("theme-summary-stats").innerHTML=themeData.slice(0,3).map(t=>
+    sc(t.l,t.pct+"%","#0F6A8C",t.count+" responses")
+  ).join("");
+
+  document.getElementById("theme-blocks").innerHTML=`<div class="g2">`+themeData.map(t=>`
+    <div class="theme-block">
+      <div class="theme-title">${t.emoji} ${t.l}<span class="theme-pct">${t.pct}%</span></div>
+      <div class="theme-desc">${t.desc}</div>
+      ${t.quotes.map(d=>`<div class="quote"><p>"${d.key_learning.trim()}"</p><small>${d.site.length>20?d.site.slice(0,20)+"…":d.site} · ${d.gender} · ${d.week}</small></div>`).join("")}
+      ${t.quotes.length===0?`<div style="font-size:11px;color:#aaa;font-style:italic">No quotes in current filter.</div>`:""}
+    </div>`).join("")+`</div>`;
+
+  // ── QUALITATIVE INSIGHTS ──────────────────
+  document.getElementById("q-theme-bars").innerHTML=themeData.map(t=>barRow(t.emoji+" "+t.l,t.pct,100,"#0F6A8C","%")).join("");
+  document.getElementById("q-learning-quotes").innerHTML=sv.filter(d=>!skip(d.key_learning)&&d.key_learning.length>30).slice(0,12).map(d=>`<div class="qb" style="break-inside:avoid"><p>"${d.key_learning.trim()}"</p><small>${d.site.length>20?d.site.slice(0,20)+"…":d.site} · ${d.gender} · ${d.week}</small></div>`).join("");
+
+  const li=sv.filter(d=>!skip(d.lesson_improve));
+  document.getElementById("q-li-ct").textContent=li.length+" responses";
+  document.getElementById("q-lessonimp").innerHTML=li.map(d=>`<div class="qb" style="border-left-color:var(--teal);break-inside:avoid;margin-bottom:6px"><p>"${d.lesson_improve}"</p><small>${d.site.length>20?d.site.slice(0,20)+"…":d.site} · ${d.gender}</small></div>`).join("");
+
+  const fb=sv.filter(d=>!skip(d.feedback));
+  document.getElementById("q-fb-ct").textContent=fb.length+" responses";
+  document.getElementById("q-feedback").innerHTML=fb.map(d=>`<div class="qb" style="border-left-color:var(--amber);break-inside:avoid;margin-bottom:6px"><p>"${d.feedback}"</p><small>${d.site.length>20?d.site.slice(0,20)+"…":d.site} · ${d.gender}</small></div>`).join("");
+
+  // ── SMS SHORT CODE ────────────────────────
+  const progSMS=SMS.filter(d=>d.prog_score!=null&&d.prog_score>=0&&d.prog_score<=10);
+  const mealsSMS=SMS.filter(d=>d.meals_score!=null&&d.meals_score>0&&d.meals_score<=10);
+  const smsEnv=Math.round(SMS.filter(d=>d.learning_env==="Yes").length/Math.max(SMS.filter(d=>d.learning_env!=null).length,1)*100);
+  const smsTrn=Math.round(SMS.filter(d=>d.trainer_support==="Yes").length/Math.max(SMS.filter(d=>d.trainer_support!=null).length,1)*100);
+  const smsYthNPS2=calcNPS(SMS.filter(d=>d.role==="Youth"),"prog_score");
+  const smsPLNPS=calcNPS(SMS.filter(d=>d.role==="Peer_leader"),"prog_score");
+
+  document.getElementById("sms-info").textContent=`SMS Short Code — full dataset · ${SMS.length} total responses · Youth: ${SMS.filter(d=>d.role==="Youth").length} · Peer Leaders: ${SMS.filter(d=>d.role==="Peer_leader").length}`;
+  document.getElementById("sms-stats").innerHTML=[
+    sc("Total SMS",SMS.length,"#0F6A8C"),
+    sc("SMS NPS (all)",fNPS(calcNPS(progSMS,"prog_score")),npsC(calcNPS(progSMS,"prog_score")),"programme score"),
+    sc("Youth NPS",fNPS(smsYthNPS2),npsC(smsYthNPS2),"youth only"),
+    sc("Peer Leader NPS",fNPS(smsPLNPS),npsC(smsPLNPS),"peer leaders"),
+    sc("Positive Env",smsEnv+"%","#008148","learning environment"),
+    sc("Trainer Support",smsTrn+"%","#008148","confirmed by SMS"),
+    sc("Avg Meals (PL)",mealsSMS.length?avg(mealsSMS.map(d=>d.meals_score)).toFixed(1)+"/10":"—","#4F9262","peer leader reports"),
+  ].join("");
+
+  const sc10=[1,2,3,4,5,6,7,8,9,10];
+  mkChart("c-sms-prog",{type:"bar",data:{labels:sc10,datasets:[
+    {label:"Youth",data:sc10.map(s=>SMS.filter(d=>d.role==="Youth"&&Math.round(d.prog_score)===s).length),backgroundColor:sc10.map(s=>s>=9?"#008148":s>=7?"#D4820A":"#C0392B"),borderRadius:3,maxBarThickness:28},
+    {label:"Peer Leader",data:sc10.map(s=>SMS.filter(d=>d.role==="Peer_leader"&&Math.round(d.prog_score)===s).length),backgroundColor:"rgba(77,136,157,0.45)",borderRadius:3,maxBarThickness:28},
+  ]},options:bOpts("Responses")});
+
+  mkChart("c-sms-meals",{type:"bar",data:{labels:sc10,datasets:[{label:"Meals",data:sc10.map(s=>mealsSMS.filter(d=>Math.round(d.meals_score)===s).length),backgroundColor:sc10.map(s=>s>=8?"#008148":s>=5?"#D4820A":"#C0392B"),borderRadius:3,maxBarThickness:28}]},options:{...bOpts("Responses"),plugins:{legend:{display:false}}}});
+
+  const sp=progSMS.filter(d=>d.prog_score>=9).length, spa=progSMS.filter(d=>d.prog_score>=7&&d.prog_score<=8).length, sd=progSMS.filter(d=>d.prog_score<=6).length;
+  document.getElementById("sms-nps-segs").innerHTML=
+    `<div style="margin-bottom:8px;font-size:10px;color:#888">${progSMS.length} SMS responses with programme scores</div>`+
+    barRow("Promoters (9–10)",sp,progSMS.length,"#008148",` (${Math.round(sp/progSMS.length*100)}%)`)+
+    barRow("Passives (7–8)",spa,progSMS.length,"#D4820A",` (${Math.round(spa/progSMS.length*100)}%)`)+
+    barRow("Detractors (0–6)",sd,progSMS.length,"#C0392B",` (${Math.round(sd/progSMS.length*100)}%)`);
+
+  document.getElementById("sms-yesno").innerHTML=[
+    ["✅ Positive Learning Environment",smsEnv+"%","#008148"],
+    ["✅ Trainer Support Confirmed",smsTrn+"%","#008148"],
+    ["❌ No Learning Environment",SMS.filter(d=>d.learning_env==="No").length+" respondents","#C0392B"],
+    ["❌ No Trainer Support",SMS.filter(d=>d.trainer_support==="No").length+" respondents","#C0392B"],
+  ].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--ink)">${l}</span><span style="font-weight:800;color:${c};font-size:13px">${v}</span></div>`).join("");
+}
+
+// ════════════════════ TAB SWITCHING ════════════════════
+function go(id,btn){
+  document.querySelectorAll(".pane").forEach(p=>p.classList.remove("on"));
+  document.querySelectorAll(".tb").forEach(b=>b.classList.remove("on"));
+  document.getElementById("pane-"+id).classList.add("on");
+  if(btn)btn.classList.add("on");
+}
+
+// ════════════════════ AI REPORT ════════════════════
+async function generateAI(){
+  const btn=document.getElementById("gen-btn");
+  btn.disabled=true; btn.textContent="Generating…";
+  document.getElementById("ai-result").innerHTML="";
+  const sv=getSV();
+  const svNPS=calcNPS(sv,"nps");
+  const mealsNPS=calcNPS(sv,"meals");
+  const venueNPS=calcNPS(sv,"venue");
+  const transpNPS=calcNPS(sv,"transport");
+  const smsNPS=calcNPS(SMS.filter(d=>d.role==="Youth"),"prog_score");
+  const smsEnv=Math.round(SMS.filter(d=>d.learning_env==="Yes").length/Math.max(SMS.filter(d=>d.learning_env!=null).length,1)*100);
+  const bPct=sv.length?Math.round(sv.filter(d=>d.barrier==="yes").length/sv.length*100):0;
+  const transFl=sv.filter(d=>d.feedback&&/(transport|walk|fare)/i.test(d.feedback)).length;
+  const siteNPS=[...new Set(sv.map(d=>d.site))].map(s=>({s,nps:+(calcNPS(sv.filter(d=>d.site===s),"nps")||0).toFixed(1)})).sort((a,b)=>a.nps-b.nps);
+  const topQuotes=sv.filter(d=>!skip(d.key_learning)&&d.key_learning.length>30).slice(0,6).map(d=>d.key_learning.trim());
+  const suggestions=sv.filter(d=>!skip(d.feedback)).slice(0,5).map(d=>d.feedback);
+
+  const prompt=`You are an expert programme analyst for Educate! OOSY Bootcamps in Uganda.
+
+DATA SNAPSHOT (${sv.length} youth, filtered: Week=${fW}, District=${fD}, Gender=${fG}):
+- Programme NPS: ${fNPS(svNPS)} | Meals NPS: ${fNPS(mealsNPS)} | Venue NPS: ${fNPS(venueNPS)} | Transport NPS: ${fNPS(transpNPS)}
+- SMS Programme NPS (Youth): ${fNPS(smsNPS)} | Positive Env: ${smsEnv}%
+- Challenge/barrier rate: ${bPct}% | Transport flags: ${transFl}
+- Site NPS (low to high): ${siteNPS.map(x=>x.s.split(' ')[0]+": "+x.nps).join(", ")}
+- Youth quotes: ${topQuotes.join(" | ")}
+- Key suggestions: ${suggestions.join(" | ")}
+
+Write a structured 5-point executive leadership brief. Plain text only, no markdown, no asterisks.
+Format each point:
+[NUMBER]. [TYPE: STRENGTH / GAP / ACTION] — [HEADLINE]
+[2-3 sentences of evidence and specific recommendation]
+
+Be specific, data-driven, and practical for a Uganda youth bootcamp programme team.`;
+
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        messages:[{role:"user",content:prompt}]
+      })
+    });
+    const data=await res.json();
+    if(data.error){throw new Error(data.error.message);}
+    const text=data.content?.map(c=>c.text||"").join("\n")||"No response received.";
+    const dt=new Date().toLocaleDateString("en-UG",{day:"numeric",month:"short",year:"numeric"});
+    document.getElementById("ai-result").innerHTML=
+      `<div class="card ai-out">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+          <span style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#888;font-weight:700">E! BA — AI Leadership Brief</span>
+          <span style="font-size:11px;color:#888;font-weight:600">${dt} · ${sv.length} respondents</span>
+        </div>
+        <pre>${text}</pre>
+      </div>`;
+  }catch(e){
+    document.getElementById("ai-result").innerHTML=`<div class="card" style="margin-top:12px;color:#9B1C1C;font-size:12px;padding:14px">Error: ${e.message||"Could not connect to AI service. Please try again."}</div>`;
+  }
+  btn.disabled=false; btn.textContent="⚡ Generate AI Leadership Report";
+}
+
+// ════════════════════ INIT ════════════════════
+function reset(){fW="All";fD="All";fG="All";document.getElementById("f-week").value="All";document.getElementById("f-district").value="All";document.getElementById("f-gender").value="All";render();}
+document.getElementById("f-week").addEventListener("change",e=>{fW=e.target.value;render();});
+document.getElementById("f-district").addEventListener("change",e=>{fD=e.target.value;render();});
+document.getElementById("f-gender").addEventListener("change",e=>{fG=e.target.value;render();});
+window.addEventListener("load",()=>{
+  render();
+  document.getElementById("ftxt").textContent="E! BA Youth Voices · OOSY Bootcamps · EBA November · "+new Date().toLocaleDateString("en-UG",{weekday:"short",year:"numeric",month:"short",day:"numeric"});
+});
+</script>
+</body>
+</html>
